@@ -4,6 +4,10 @@ using SendGrid.Helpers.Mail;
 using System;
 using System.Threading.Tasks;
 using ms_notifications.Models;
+using Amazon;
+using Amazon.SimpleNotificationService;
+using Amazon.SimpleNotificationService.Model;
+
 
 namespace akinmueble_notifications_ms.Controllers;
 
@@ -76,6 +80,41 @@ public class NotificationsController : ControllerBase
         else {
             return BadRequest("Error enviando el mensaje a la dirrecion " + data.destinationEmail);
         }
+    }
+
+    //send sms
+
+    [Route("send-sms")]
+    [HttpPost]
+    public async Task<ActionResult> SendSmsPassword(ModelSms data)
+    {
+       var accesskey = Environment.GetEnvironmentVariable("ACCESS_KEY_AWS");
+       var secretkey = Environment.GetEnvironmentVariable("SECRET_KEY_AWS");
+       var client = new AmazonSimpleNotificationServiceClient(accesskey,secretkey,RegionEndpoint.USWest2);
+       var messageAttributes = new Dictionary<string, MessageAttributeValue>();
+       var smsType = new MessageAttributeValue
+       {
+            DataType = "String",
+            StringValue = "Transactional"
+       };
+
+       messageAttributes.Add("AWS.SNS.SMS.SMSType", smsType);
+
+       PublishRequest request = new PublishRequest
+       {
+            Message = data.contentSms,
+            PhoneNumber = data.destinationNumber,
+            MessageAttributes = messageAttributes
+       };
+       try
+       {
+            await client.PublishAsync(request);
+            return Ok("Mensaje enviado");
+       }
+       catch
+       {
+            return BadRequest("Error enviado el sms");
+       }
     }
 
     private SendGridMessage CreateStandardMessage(ModelEmail data)
