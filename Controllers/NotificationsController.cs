@@ -59,9 +59,9 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    [Route("send-email-2fa")]
+    [Route("send-email")]
     [HttpPost]
-    public async Task<ActionResult> SendEmail2fa(ModelEmail data)
+    public async Task<ActionResult> SendEmail(ModelEmail data)
     {
         var apiKey = Environment.GetEnvironmentVariable("SENDGRID_API_KEY");
         var client = new SendGridClient(apiKey);
